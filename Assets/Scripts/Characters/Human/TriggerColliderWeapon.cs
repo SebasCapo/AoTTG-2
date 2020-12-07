@@ -111,39 +111,19 @@ public class TriggerColliderWeapon : MonoBehaviour
                     {
                         Service.Player.TitanHit(new TitanHitEvent(titan, BodyPart.Eyes, hero, RightHand));
 
-                        if (titan is FemaleTitan)
+
+                        Vector3 velocity = body.velocity - rootObject.GetComponent<Rigidbody>().velocity;
+                        int damage = Mathf.Max(10, (int) ((velocity.magnitude * 10f) * scoreMulti));
+
+                        if (PhotonNetwork.isMasterClient)
                         {
-                            var femaleTitan = titan as FemaleTitan;
-
-                            if (femaleTitan.hasDie) return;
-
-                            if (!PhotonNetwork.isMasterClient)
-                            {
-                                object[] infoArray = new object[] { transform.root.gameObject.GetPhotonView().viewID };
-                                femaleTitan.photonView.RPC(nameof(FemaleTitan.hitEyeRPC), PhotonTargets.MasterClient, infoArray);
-                            }
-                            else
-                            {
-                                femaleTitan.hitEyeRPC(transform.root.gameObject.GetPhotonView().viewID);
-                            }
+                            titan.OnEyeHitRpc(transform.root.gameObject.GetPhotonView().viewID, damage);
                         }
-                        else if (titan is MindlessTitan)
+                        else
                         {
-                            var mindlessTitan = titan as MindlessTitan;
-
-                            Vector3 velocity = body.velocity - rootObject.GetComponent<Rigidbody>().velocity;
-                            int damage = Mathf.Max(10, (int) ((velocity.magnitude * 10f) * scoreMulti));
-
-                            if (PhotonNetwork.isMasterClient)
-                            {
-                                mindlessTitan.OnEyeHitRpc(transform.root.gameObject.GetPhotonView().viewID, damage);
-                            }
-                            else
-                            {
-                                mindlessTitan.photonView.RPC(nameof(MindlessTitan.OnEyeHitRpc), mindlessTitan.photonView.owner, transform.root.gameObject.GetPhotonView().viewID, damage);
-                            }
-                            ShowCriticalHitFX();
+                            titan.photonView.RPC(nameof(TitanBase.OnEyeHitRpc), titan.photonView.owner, transform.root.gameObject.GetPhotonView().viewID, damage);
                         }
+                        ShowCriticalHitFX();
                     }
                 }
                 break;
@@ -181,48 +161,17 @@ public class TriggerColliderWeapon : MonoBehaviour
                         velocity = body.velocity - rigidbody.velocity;
                     }
 
-                    int damage = Mathf.Max(10, (int) ((velocity.magnitude * 10f) * scoreMulti));
+                    var damage = Mathf.Max(10, (int) ((velocity.magnitude * 10f) * scoreMulti));
 
                     if (rootObj.TryGetComponent(out TitanBase titan))
                     {
                         Service.Player.TitanHit(new TitanHitEvent(titan, BodyPart.Ankle, hero, RightHand));
+                        ShowCriticalHitFX();
 
-                        if (titan is MindlessTitan)
-                        {
-                            var mindlessTitan = titan as MindlessTitan;
+                        if (!titan.IsAlive) return;
 
-                            mindlessTitan.OnAnkleHit(transform.root.gameObject.GetPhotonView().viewID, damage);
-                            ShowCriticalHitFX();
-                        }
-                        else if (titan is FemaleTitan)
-                        {
-                            var femaleTitan = titan as FemaleTitan;
-
-                            if (femaleTitan.hasDie) return;
-
-                            if (collider.gameObject.name == "ankleR")
-                            {
-                                if (!PhotonNetwork.isMasterClient)
-                                {
-                                    object[] infoArray = new object[] { transform.root.gameObject.GetPhotonView().viewID, damage };
-                                    femaleTitan.photonView.RPC(nameof(FemaleTitan.hitAnkleRRPC), PhotonTargets.MasterClient, infoArray);
-                                }
-                                else
-                                {
-                                    femaleTitan.hitAnkleRRPC(transform.root.gameObject.GetPhotonView().viewID, damage);
-                                }
-                            }
-                            else if (!PhotonNetwork.isMasterClient)
-                            {
-                                object[] infoArray = new object[] { transform.root.gameObject.GetPhotonView().viewID, damage };
-                                femaleTitan.photonView.RPC(nameof(FemaleTitan.hitAnkleLRPC), PhotonTargets.MasterClient, infoArray);
-                            }
-                            else
-                            {
-                                femaleTitan.hitAnkleLRPC(transform.root.gameObject.GetPhotonView().viewID, damage);
-                            }
-                            ShowCriticalHitFX();
-                        }
+                        var infoArray = new object[] { damage, collider.gameObject.name == "ankleR" };
+                        titan.photonView.RPC(nameof(TitanBase.OnAnkleHitRpc), PhotonTargets.MasterClient, infoArray);
                     }
                     else if (rootObj.TryGetComponent(out DummyTitan dummyTitan))
                     {

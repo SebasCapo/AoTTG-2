@@ -86,6 +86,7 @@ public class FemaleTitan : TitanBase
     private string turnAnimation;
     private float turnDeg;
     private GameObject whoHasTauntMe;
+    private FengGameManagerMKII manager;
 
     public override void Initialize(TitanConfiguration configuration)
     {
@@ -565,6 +566,7 @@ public class FemaleTitan : TitanBase
         base.Awake();
         base.GetComponent<Rigidbody>().freezeRotation = true;
         base.GetComponent<Rigidbody>().useGravity = false;
+        manager = GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>();
     }
 
     public void beTauntedBy(GameObject target, float tauntTime)
@@ -930,83 +932,43 @@ public class FemaleTitan : TitanBase
         }
     }
 
-    public void hitAnkleL(int dmg)
-    {
-        if (!this.hasDie && (this.state != "anklehurt"))
-        {
-            this.AnkleLHP -= dmg;
-            if (this.AnkleLHP <= 0)
-            {
-                this.getDown();
-            }
-        }
-    }
-
     [PunRPC]
-    public void hitAnkleLRPC(int viewID, int dmg)
+    public override void OnAnkleHitRpc(int dmg, bool isRightAnkle, PhotonMessageInfo info = default)
     {
-        if (!this.hasDie && (this.state != "anklehurt"))
+        if (!hasDie && (state != "anklehurt"))
         {
-            PhotonView view = PhotonView.Find(viewID);
-            if (view != null)
-            {
-                if (this.grabbedTarget != null)
-                {
-                    this.grabbedTarget.GetPhotonView().RPC("netUngrabbed", PhotonTargets.All, new object[0]);
-                }
-                Vector3 vector = view.gameObject.transform.position - base.transform.Find("Amarture/Core/Controller_Body").transform.position;
-                if (vector.magnitude < 20f)
-                {
-                    this.AnkleLHP -= dmg;
-                    if (this.AnkleLHP <= 0)
-                    {
-                        this.getDown();
-                    }
-                    GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>().sendKillInfo(false, (string) view.owner.CustomProperties[PhotonPlayerProperty.name], true, "Female Titan's ankle", dmg);
-                    object[] parameters = new object[] { dmg };
-                    GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>().photonView.RPC("netShowDamage", view.owner, parameters);
-                }
-            }
-        }
-    }
+            var view = info.photonView;
 
-    public void hitAnkleR(int dmg)
-    {
-        if (!this.hasDie && (this.state != "anklehurt"))
-        {
-            this.AnkleRHP -= dmg;
-            if (this.AnkleRHP <= 0)
-            {
-                this.getDown();
-            }
-        }
-    }
+            if (view == null) return;
 
-    [PunRPC]
-    public void hitAnkleRRPC(int viewID, int dmg)
-    {
-        if (!this.hasDie && (this.state != "anklehurt"))
-        {
-            PhotonView view = PhotonView.Find(viewID);
-            if (view != null)
+            if (grabbedTarget != null)
             {
-                if (this.grabbedTarget != null)
-                {
-                    this.grabbedTarget.GetPhotonView().RPC("netUngrabbed", PhotonTargets.All, new object[0]);
-                }
-                Vector3 vector = view.gameObject.transform.position - base.transform.Find("Amarture/Core/Controller_Body").transform.position;
-                if (vector.magnitude < 20f)
-                {
-                    this.AnkleRHP -= dmg;
-                    if (this.AnkleRHP <= 0)
-                    {
-                        this.getDown();
-                    }
-                    GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>().sendKillInfo(false, (string) view.owner.CustomProperties[PhotonPlayerProperty.name], true, "Female Titan's ankle", dmg);
-                    object[] parameters = new object[] { dmg };
-                    GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>().photonView.RPC("netShowDamage", view.owner, parameters);
-                }
+                grabbedTarget.GetPhotonView().RPC("netUngrabbed", PhotonTargets.All, new object[0]);
             }
+
+            if ((view.gameObject.transform.position - Body.transform.position).magnitude < 20f)
+            {
+                if(isRightAnkle)
+                {
+                    AnkleRHP -= dmg;
+                    if (AnkleRHP <= 0)
+                    {
+                        getDown();
+                    }
+                } else
+                {
+                    AnkleLHP -= dmg;
+                    if (AnkleLHP <= 0)
+                    {
+                        getDown();
+                    }
+                }
+
+                manager.sendKillInfo(false, (string) view.owner.CustomProperties[PhotonPlayerProperty.name], true, "Female Titan's ankle", dmg);
+
+                manager.photonView.RPC(nameof(FengGameManagerMKII.netShowDamage), view.owner, new object[] { dmg });
+            }
+
         }
     }
 
@@ -1019,14 +981,15 @@ public class FemaleTitan : TitanBase
     }
 
     [PunRPC]
-    public void hitEyeRPC(int viewID)
+    public override void OnEyeHitRpc(int viewID, int damage)
     {
-        if (!this.hasDie)
+        if (!hasDie)
         {
-            if (this.grabbedTarget != null)
+            if (grabbedTarget != null)
             {
-                this.grabbedTarget.GetPhotonView().RPC("netUngrabbed", PhotonTargets.All, new object[0]);
+                grabbedTarget.GetPhotonView().RPC("netUngrabbed", PhotonTargets.All, new object[0]);
             }
+
             Transform transform = base.transform.Find("Amarture/Core/Controller_Body/hip/spine/chest/neck");
             PhotonView view = PhotonView.Find(viewID);
             if (view != null)
@@ -1034,7 +997,7 @@ public class FemaleTitan : TitanBase
                 Vector3 vector = view.gameObject.transform.position - transform.transform.position;
                 if (vector.magnitude < 20f)
                 {
-                    this.justHitEye();
+                    justHitEye();
                 }
             }
         }
@@ -1445,14 +1408,14 @@ public class FemaleTitan : TitanBase
                             this.grabbedTarget.GetPhotonView().RPC("netUngrabbed", PhotonTargets.All, new object[0]);
                         }
                         this.netDie();
-                        GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>().titanGetKill(view.owner, speed, base.name);
+                        manager.titanGetKill(view.owner, speed, base.name);
                     }
                 }
                 else
                 {
-                    GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>().sendKillInfo(false, (string) view.owner.CustomProperties[PhotonPlayerProperty.name], true, "Female Titan's neck", speed);
+                    manager.sendKillInfo(false, (string) view.owner.CustomProperties[PhotonPlayerProperty.name], true, "Female Titan's neck", speed);
                     object[] parameters = new object[] { speed };
-                    GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>().photonView.RPC("netShowDamage", view.owner, parameters);
+                    manager.photonView.RPC("netShowDamage", view.owner, parameters);
                 }
                 this.healthTime = 0.2f;
             }
@@ -1501,7 +1464,7 @@ public class FemaleTitan : TitanBase
                         for (int i = 0; i < 15; i++)
                         {
                             throw new NotImplementedException("Add mindless titan spawners to Female Titan");
-                            //GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>().randomSpawnOneTitan("titanRespawn", 50).GetComponent<TITAN>().beTauntedBy(base.gameObject, 20f);
+                            //manager.randomSpawnOneTitan("titanRespawn", 50).GetComponent<TITAN>().beTauntedBy(base.gameObject, 20f);
                         }
                     }
                 }

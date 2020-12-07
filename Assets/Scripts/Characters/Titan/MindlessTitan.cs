@@ -398,8 +398,6 @@ namespace Assets.Scripts.Characters.Titan
             }
         }
 
-        public void OnAnkleHit(int viewId, int damage) { }
-
         private float bodyPartDamageTimer;
         [PunRPC]
         public void OnBodyPartHitRpc(BodyPart bodyPart, int damage)
@@ -416,7 +414,7 @@ namespace Assets.Scripts.Characters.Titan
         }
 
         [PunRPC]
-        public void OnEyeHitRpc(int viewId, int damage)
+        public override void OnEyeHitRpc(int viewId, int damage)
         {
             if (MindlessType == MindlessTitanType.Crawler) return;
             if (!photonView.isMine) return;
@@ -665,6 +663,7 @@ namespace Assets.Scripts.Characters.Titan
             var position = transform.position;
             foreach (Entity hero in EntityService.GetAll<Entity>())
             {
+                Debug.Log(FactionService.IsFriendly(this, hero) + "" + hero.gameObject);
                 if (FactionService.IsFriendly(this, hero)) continue;
                 var distance = Vector3.Distance(hero.gameObject.transform.position, position);
                 if (distance < targetDistance)

@@ -158,12 +158,12 @@ public class AHSSShotGunCollider : MonoBehaviour
                             if (!gameObject.GetComponent<FemaleTitan>().hasDie)
                             {
                                 object[] objArray5 = new object[] { base.transform.root.gameObject.GetPhotonView().viewID };
-                                gameObject.GetComponent<FemaleTitan>().photonView.RPC(nameof(FemaleTitan.hitEyeRPC), PhotonTargets.MasterClient, objArray5);
+                                //gameObject.GetComponent<FemaleTitan>().photonView.RPC(nameof(FemaleTitan.OnEyeHitRpc), PhotonTargets.MasterClient, objArray5);
                             }
                         }
                         else if (!gameObject.GetComponent<FemaleTitan>().hasDie)
                         {
-                            gameObject.GetComponent<FemaleTitan>().hitEyeRPC(base.transform.root.gameObject.GetPhotonView().viewID);
+                            //gameObject.GetComponent<FemaleTitan>().OnEyeHitRpc(base.transform.root.gameObject.GetPhotonView().viewID);
                         }
                     }
                     else if (gameObject.GetComponent<MindlessTitan>() != null)
@@ -194,7 +194,7 @@ public class AHSSShotGunCollider : MonoBehaviour
                 if (obj3.GetComponent<MindlessTitan>() != null)
                 {
                     var mindlessTitan = obj3.GetComponent<MindlessTitan>();
-                    mindlessTitan.OnAnkleHit(transform.root.gameObject.GetPhotonView().viewID, num9);
+                    //mindlessTitan.OnAnkleHit(transform.root.gameObject.GetPhotonView().viewID, num9);
                     showCriticalHitFX(other.gameObject.transform.position);
                 }
                 else if (obj3.GetComponent<FemaleTitan>() != null)
@@ -206,12 +206,12 @@ public class AHSSShotGunCollider : MonoBehaviour
                             if (!obj3.GetComponent<FemaleTitan>().hasDie)
                             {
                                 object[] objArray8 = new object[] { base.transform.root.gameObject.GetPhotonView().viewID, num9 };
-                                obj3.GetComponent<FemaleTitan>().photonView.RPC(nameof(FemaleTitan.hitAnkleRRPC), PhotonTargets.MasterClient, objArray8);
+                                //obj3.GetComponent<FemaleTitan>().photonView.RPC(nameof(FemaleTitan.hitAnkleRRPC), PhotonTargets.MasterClient, objArray8);
                             }
                         }
                         else if (!obj3.GetComponent<FemaleTitan>().hasDie)
                         {
-                            obj3.GetComponent<FemaleTitan>().hitAnkleRRPC(base.transform.root.gameObject.GetPhotonView().viewID, num9);
+                            //obj3.GetComponent<FemaleTitan>().hitAnkleRRPC(base.transform.root.gameObject.GetPhotonView().viewID, num9);
                         }
                     }
                     else if (!PhotonNetwork.isMasterClient)
@@ -219,12 +219,12 @@ public class AHSSShotGunCollider : MonoBehaviour
                         if (!obj3.GetComponent<FemaleTitan>().hasDie)
                         {
                             object[] objArray9 = new object[] { base.transform.root.gameObject.GetPhotonView().viewID, num9 };
-                            obj3.GetComponent<FemaleTitan>().photonView.RPC(nameof(FemaleTitan.hitAnkleLRPC), PhotonTargets.MasterClient, objArray9);
+                            //obj3.GetComponent<FemaleTitan>().photonView.RPC(nameof(FemaleTitan.hitAnkleLRPC), PhotonTargets.MasterClient, objArray9);
                         }
                     }
                     else if (!obj3.GetComponent<FemaleTitan>().hasDie)
                     {
-                        obj3.GetComponent<FemaleTitan>().hitAnkleLRPC(base.transform.root.gameObject.GetPhotonView().viewID, num9);
+                        //obj3.GetComponent<FemaleTitan>().hitAnkleLRPC(base.transform.root.gameObject.GetPhotonView().viewID, num9);
                     }
                     this.showCriticalHitFX(other.gameObject.transform.position);
                 }

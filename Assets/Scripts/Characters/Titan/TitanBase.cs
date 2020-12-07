@@ -357,6 +357,19 @@ namespace Assets.Scripts.Characters.Titan
 
         [Obsolete("Blocking all damage for 0.2s isn't viable. Instead block this per view ID instead of all")]
         private float DamageTimer { get; set; }
+
+        [PunRPC]
+        public virtual void OnEyeHitRpc(int viewId, int damage)
+        {
+
+        }
+
+        [PunRPC]
+        public virtual void OnAnkleHitRpc(int dmg, bool isRightAnkle, PhotonMessageInfo info)
+        {
+
+        }
+
         [PunRPC]
         public virtual void OnNapeHitRpc2(int viewId, int damage, PhotonMessageInfo info)
         {
@@ -398,7 +411,7 @@ namespace Assets.Scripts.Characters.Titan
             SetState(TitanState.Dead);
             FengGameManagerMKII.instance.titanGetKill(view.owner, damage, name);
         }
-
+        
         [PunRPC]
         protected void UpdateHealthLabelRpc2(int currentHealth, int maxHealth)
         {

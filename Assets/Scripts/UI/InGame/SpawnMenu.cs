@@ -71,7 +71,7 @@ namespace Assets.Scripts.UI.InGame
         public void SpawnPlayerTitan()
         {
             GameObject.Find("MultiplayerManager").GetComponent<FengGameManagerMKII>().needChooseSide = false;
-            SpawnService.Spawn<PlayerTitan>();
+            SpawnService.Spawn<PlayerTitan>(); // Agregar bool, cambiar la facción dependiendo del bool. Siempre true en éste método.
             gameObject.SetActive(false);
         }
 
